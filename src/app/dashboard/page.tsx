@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { LogOut, Sparkles } from "lucide-react";
 
 import { signOut } from "@/app/actions/auth";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SermonLibrary } from "@/app/dashboard/sermon-library";
@@ -10,19 +9,6 @@ import { SermonUploader } from "@/app/dashboard/sermon-uploader";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
-
-const formatShortDate = (value?: string) => {
-  if (!value) {
-    return "-";
-  }
-
-  return new Date(value).toLocaleDateString("en-US", {
-    timeZone: "UTC",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-};
 
 export default async function DashboardPage() {
   const supabase = createSupabaseServerClient();
@@ -41,9 +27,9 @@ export default async function DashboardPage() {
     .order("created_at", { ascending: false })
     .limit(200);
 
-  const total = sermons?.length ?? 0;
-  const ready = sermons?.filter((sermon) => sermon.status === "ready").length ?? 0;
-  const lastDate = sermons?.[0]?.created_at;
+  const completedCount = sermons?.filter((sermon) => sermon.status !== "processing").length ?? 0;
+  const estimatedSpend = completedCount * 0.31;
+
   const normalizedSermons = (sermons ?? []).map((sermon) => ({
     ...sermon,
     tags: Array.isArray(sermon.tags) ? sermon.tags.filter((tag) => typeof tag === "string") : [],
@@ -64,9 +50,7 @@ export default async function DashboardPage() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline">All {total}</Badge>
-            <Badge variant="success">Ready {ready}</Badge>
-            <Badge variant="secondary">Last {formatShortDate(lastDate)}</Badge>
+            <p className="text-xs text-muted-foreground">Est. spend: ${estimatedSpend.toFixed(2)}</p>
             <form action={signOut}>
               <Button className="gap-2" size="sm" type="submit" variant="secondary">
                 <LogOut className="h-3.5 w-3.5" />

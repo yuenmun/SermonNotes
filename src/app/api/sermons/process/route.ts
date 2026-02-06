@@ -51,13 +51,28 @@ export async function POST(request: Request) {
     return NextResponse.json({ sermon: existing, reused: true }, { status: 200 });
   }
 
+  const { data: created, error: createError } = await supabase
+    .from("sermons")
+    .insert({
+      user_id: user.id,
+      title: "Processing notes...",
+      gamma_url: "#",
+      status: "processing",
+      idempotency_key: idempotencyKey,
+    })
+    .select(SERMON_SELECT)
+    .single();
+
+  if (createError || !created) {
+    return NextResponse.json({ error: createError?.message ?? "Unable to create processing job" }, { status: 500 });
+  }
+
   try {
     const processed = await processSermonAudio(audioFile);
 
-    const { data: inserted, error: insertError } = await supabase
+    const { data: updated, error: updateError } = await supabase
       .from("sermons")
-      .insert({
-        user_id: user.id,
+      .update({
         title: processed.title,
         gamma_url: processed.gammaUrl,
         status: "ready",
@@ -65,19 +80,26 @@ export async function POST(request: Request) {
         scripture_references: processed.verseReferences,
         key_points: processed.keyPoints,
         transcript_excerpt: processed.transcriptExcerpt,
-        idempotency_key: idempotencyKey,
         gamma_request_id: processed.gammaRequestId ?? null,
       })
+      .eq("id", created.id)
       .select(SERMON_SELECT)
       .single();
 
-    if (insertError || !inserted) {
-      throw new Error(insertError?.message ?? "Unable to archive sermon row");
+    if (updateError || !updated) {
+      throw new Error(updateError?.message ?? "Unable to update sermon row");
     }
 
-    return NextResponse.json({ sermon: inserted }, { status: 200 });
+    return NextResponse.json({ sermon: updated }, { status: 200 });
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : "Processing failed";
+    await supabase
+      .from("sermons")
+      .update({
+        status: "failed",
+        title: "Processing failed",
+      })
+      .eq("id", created.id);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

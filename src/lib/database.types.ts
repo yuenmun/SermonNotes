@@ -16,7 +16,7 @@ export type Database = {
           title: string;
           gamma_url: string;
           created_at: string;
-          status: "ready" | "failed";
+          status: "processing" | "ready" | "failed";
           hero_verse: string | null;
           scripture_references: Json;
           key_points: Json;
@@ -32,7 +32,7 @@ export type Database = {
           title: string;
           gamma_url: string;
           created_at?: string;
-          status?: "ready" | "failed";
+          status?: "processing" | "ready" | "failed";
           hero_verse?: string | null;
           scripture_references?: Json;
           key_points?: Json;
@@ -48,7 +48,7 @@ export type Database = {
           title?: string;
           gamma_url?: string;
           created_at?: string;
-          status?: "ready" | "failed";
+          status?: "processing" | "ready" | "failed";
           hero_verse?: string | null;
           scripture_references?: Json;
           key_points?: Json;

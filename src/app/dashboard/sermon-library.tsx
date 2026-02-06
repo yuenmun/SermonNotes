@@ -23,7 +23,7 @@ type Sermon = {
   title: string;
   gamma_url: string;
   created_at: string;
-  status: "ready" | "failed";
+  status: "processing" | "ready" | "failed";
   pastor_name: string | null;
   tags: string[] | null;
   hero_verse: string | null;
@@ -232,8 +232,7 @@ export function SermonLibrary({ initialSermons, error }: SermonLibraryProps) {
       <CardHeader className="space-y-3 p-4 sm:p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="mono-kicker">Archive</p>
-            <CardTitle className="text-base sm:text-lg">Recent Sermons</CardTitle>
+            <CardTitle className="text-base sm:text-lg">Sermon Library</CardTitle>
           </div>
           <div className="inline-flex rounded-xl border border-white/10 bg-black/35 p-1">
             <Button
@@ -287,6 +286,9 @@ export function SermonLibrary({ initialSermons, error }: SermonLibraryProps) {
             const tags = isEditing ? edit.tags : normalizeArray(sermon.tags);
             const verseReferences = normalizeArray(sermon.scripture_references);
             const reference = verseReferences[0] ?? sermon.hero_verse ?? "No explicit verse detected";
+            const isProcessing = sermon.status === "processing";
+            const canOpen = sermon.gamma_url && sermon.gamma_url !== "#";
+            const statusVariant = sermon.status === "ready" ? "success" : sermon.status === "processing" ? "secondary" : "destructive";
 
             return (
               <article
@@ -296,7 +298,7 @@ export function SermonLibrary({ initialSermons, error }: SermonLibraryProps) {
               >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between gap-2">
-                    <Badge variant={sermon.status === "ready" ? "success" : "destructive"}>{sermon.status}</Badge>
+                    <Badge variant={statusVariant}>{sermon.status}</Badge>
                     <p className="text-xs text-muted-foreground">{formatSermonDate(sermon.created_at)}</p>
                   </div>
 
@@ -320,7 +322,7 @@ export function SermonLibrary({ initialSermons, error }: SermonLibraryProps) {
                           {sermon.pastor_name}
                         </span>
                       ) : null}
-                      {reference}
+                      {isProcessing ? "Generating notes..." : reference}
                     </p>
                   )}
 
@@ -352,11 +354,11 @@ export function SermonLibrary({ initialSermons, error }: SermonLibraryProps) {
                 </div>
 
                 <div className={viewMode === "list" ? "mt-3 grid gap-2 sm:mt-0 sm:w-[170px]" : "mt-3 grid grid-cols-2 gap-2"}>
-                  <Button onClick={() => openGamma(sermon.gamma_url)} size="sm" type="button">
+                  <Button disabled={!canOpen} onClick={() => openGamma(sermon.gamma_url)} size="sm" type="button">
                     <ExternalLink className="h-3.5 w-3.5" />
                     Open
                   </Button>
-                  <Button onClick={() => shareGamma(sermon.gamma_url)} size="sm" type="button" variant="secondary">
+                  <Button disabled={!canOpen} onClick={() => shareGamma(sermon.gamma_url)} size="sm" type="button" variant="secondary">
                     <Share2 className="h-3.5 w-3.5" />
                     Share
                   </Button>
