@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sermon Notes Webapp (Next.js 14)
 
-## Getting Started
+Sermon Notes is a thin orchestration app:
+- `whisper-1` transcribes sermon audio.
+- `gpt-5-mini` extracts structured sermon content.
+- Gamma API generates the sermon webpage artifact.
+- Supabase stores sermon metadata and Gamma links per user.
 
-First, run the development server:
+Canonical planning reference: `docs/PNEUMA_CANONICAL_PLAN.md`
 
+## Stack
+
+- Next.js 14 (App Router)
+- Supabase Auth (Google OAuth) + Postgres
+- OpenAI (`whisper-1`, `gpt-5-mini`)
+- Gamma API v1.0 (`POST /v1.0/generations/from-template`)
+
+## Local Setup
+
+1. Install dependencies:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Create env file:
+```bash
+cp .env.example .env.local
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Fill `.env.local` values:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `OPENAI_API_KEY`
+- `GAMMA_API_KEY`
+- `GAMMA_TEMPLATE_ID` (optional but recommended for branded template output)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Run DB migration in Supabase SQL editor (or CLI):
+- `supabase/migrations/20260206220000_create_sermons.sql`
 
-## Learn More
+5. Configure Google OAuth in Supabase Auth:
+- Enable Google provider.
+- Add redirect URL: `http://localhost:3000/auth/callback`
 
-To learn more about Next.js, take a look at the following resources:
+6. Start app:
+```bash
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Open `http://localhost:3000`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Implemented Flow
 
-## Deploy on Vercel
+1. Sign in on `/login`:
+- Google OAuth (if provider is enabled in Supabase), or
+- Email magic link fallback.
+2. Open dashboard (`/dashboard`) and generate from:
+- browser recording
+- audio upload
+- pasted transcript text
+3. Backend route `/api/sermons/process`:
+- validates audio
+- hashes file for idempotency
+- calls OpenAI transcription
+- calls GPT tool extraction
+- calls Gamma generation API
+- inserts sermon row in Supabase
+4. Dashboard sermon library:
+- search by title/pastor/tag
+- filter by tag
+- grid/list toggle
+- open Gamma button + share link copy
+- edit title/pastor/tags + delete sermon
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Important Files
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `src/app/dashboard/page.tsx`
+- `src/app/api/sermons/process/route.ts`
+- `src/lib/sermon/process.ts`
+- `src/lib/sermon/orchestrator.ts`
+- `src/lib/gamma/client.ts`
+- `supabase/migrations/20260206220000_create_sermons.sql`
+
+## Notes
+
+- Gamma response URL extraction is defensive to handle payload variants.
+- API route uses Node runtime for OpenAI file handling.
+- Middleware keeps Supabase session cookies refreshed.

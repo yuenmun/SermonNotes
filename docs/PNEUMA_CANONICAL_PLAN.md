@@ -486,3 +486,47 @@ Since Gamma is generating the view, your App UI is incredibly simple.
 - [ ] Build dashboard list and card open behavior.
 - [ ] Add tests (unit/integration/e2e) from matrix.
 - [ ] Add logs, cost tracking, and failure telemetry.
+
+---
+
+## 9. Implementation Progress Update (February 6, 2026)
+
+### Completed in repository
+- Next.js 14 App Router project scaffolded and building successfully.
+- Supabase SSR auth plumbing added:
+  - middleware session refresh
+  - Google OAuth action + callback route
+  - protected dashboard route behavior
+- Gamma integration switched to direct v1.0 API client (`from-template` path).
+- OpenAI pipeline modules implemented:
+  - Whisper transcription
+  - GPT-5 mini structured extraction via tool-call contract
+- Processing API route implemented (`/api/sermons/process`) with:
+  - audio validation
+  - idempotency hash (`sha256` of uploaded file)
+  - archive insertion into `sermons`
+- Dashboard implemented with:
+  - upload form
+  - recent sermons list
+  - open Gamma URL action
+- Supabase migration added with table, indexes, and RLS policies.
+- `.env.example` and setup README updated.
+
+### New learnings from implementation
+- Supabase TypeScript client requires generated-schema shape (`Row/Insert/Update/Relationships`) to avoid `never` inserts.
+- Build-time environment validation must be runtime-safe in App Router; strict throws at module import can break `next build`.
+- Dynamic auth pages should explicitly use per-request rendering semantics when session data is required.
+- Gamma response URL fields may vary; extraction should be defensive and validated before DB write.
+
+### Current status by checklist
+- [x] Initialize Next.js 14 app router project.
+- [x] Configure Supabase auth + Google OAuth. (code-level integration complete; dashboard provider setup still required in Supabase UI)
+- [x] Add DB migration for `sermons` table and RLS.
+- [x] Implement `processSermonAudio` server action. (implemented as API route + server processing module)
+- [x] Integrate `whisper-1` transcription.
+- [x] Integrate `gpt-5-mini` orchestrator + tools.
+- [x] Integrate Gamma generation client.
+- [x] Persist Gamma URL in Supabase.
+- [x] Build dashboard list and card open behavior.
+- [ ] Add tests (unit/integration/e2e) from matrix.
+- [ ] Add logs, cost tracking, and failure telemetry.

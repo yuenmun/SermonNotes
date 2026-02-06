@@ -1,42 +1,60 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 220 16% 6%;
+    --foreground: 210 40% 96%;
+    --card: 220 16% 8%;
+    --card-foreground: 210 35% 96%;
+    --popover: 220 16% 8%;
+    --popover-foreground: 210 35% 96%;
+    --primary: 0 0% 96%;
+    --primary-foreground: 220 20% 8%;
+    --secondary: 220 14% 14%;
+    --secondary-foreground: 210 35% 90%;
+    --muted: 220 12% 12%;
+    --muted-foreground: 215 16% 67%;
+    --accent: 220 12% 14%;
+    --accent-foreground: 210 35% 95%;
+    --destructive: 356 76% 57%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 19%;
+    --input: 220 12% 22%;
+    --ring: 0 0% 90%;
+    --radius: 0.95rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+
+  body {
+    background-image:
+      radial-gradient(circle at 12% -10%, rgba(255, 255, 255, 0.08), transparent 30%),
+      radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.05), transparent 35%),
+      linear-gradient(160deg, rgba(255, 255, 255, 0.02), transparent 45%);
+    min-height: 100vh;
   }
 }
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
+@layer utilities {
+  .glass-panel {
+    @apply border border-white/10 bg-black/45 shadow-panel backdrop-blur-xl;
+  }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+  .mono-kicker {
+    @apply text-[10px] uppercase tracking-[0.2em] text-muted-foreground;
+  }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+  .surface-dot {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.1) 0.7px, transparent 0.7px);
+    background-size: 16px 16px;
   }
 }
